@@ -1,6 +1,8 @@
 """Creates the Request and Response sub class that are used by each entry"""
 from typing import Optional
+
 from cached_property import cached_property
+
 from .mixins import HttpTransaction
 
 
@@ -244,12 +246,14 @@ class Response(HttpTransaction):
         return self.get_header_value("content-security-policy")
 
     @cached_property
-    def contentSize(self) -> int:
+    def contentSize(self) -> Optional[int]:
         """
         :return: Content Size
         :rtype: int
         """
-        return self.raw_entry["content"]["size"]
+        if "content" not in self.raw_entry:
+            return None
+        return self.raw_entry["content"].get("size")
 
     @cached_property
     def contentType(self) -> str:
@@ -276,25 +280,35 @@ class Response(HttpTransaction):
         return self.get_header_value("last-modified")
 
     @cached_property
-    def mimeType(self) -> str:
+    def mimeType(self) -> Optional[str]:
         """
         :return: Mime Type of response
         :rtype: str
         """
-        return self.raw_entry["content"]["mimeType"]
+        if "content" not in self.raw_entry:
+            return None
+        return self.raw_entry["content"].get("mimeType")
 
     @cached_property
-    def text(self) -> str:
+    def text(self) -> Optional[str]:
         """
         :return: Response body
         :rtype: str
         """
-        return self.raw_entry["content"]["text"]
+        if "content" not in self.raw_entry:
+            return None
+        content = self.raw_entry["content"]
+        if "_textBase64" in content:
+            return content.get("_textBase64")
+        else:
+            return content.get("text")
 
     @cached_property
-    def textEncoding(self) -> str:
+    def textEncoding(self) -> Optional[str]:
         """
         :return: How the response body is encoded
         :rtype: str
         """
+        if "content" not in self.raw_entry:
+            return None
         return self.raw_entry["content"].get("encoding")
